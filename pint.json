@@ -1,0 +1,51 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "simplified_null_return": true,
+        "array_indentation": false,
+        "concat_space": { "spacing": "one" },
+        "array_syntax": {
+            "syntax": "short"
+        },
+        "binary_operator_spaces": {
+            "default": "single_space"
+        },
+        "no_unused_imports": true,
+        "ordered_imports": true,
+        "blank_line_after_namespace": true,
+        "blank_line_after_opening_tag": true,
+        "class_attributes_separation": {
+            "elements": {
+                "method": "one",
+                "property": "one",
+                "const": "one"
+            }
+        },
+        "phpdoc_order": true,
+        "return_type_declaration": {
+            "space_before": "none"
+        },
+        "single_import_per_statement": true,
+        "single_trait_insert_per_statement": true,
+        "trailing_comma_in_multiline": {
+            "elements": [
+                "arrays"
+            ]
+        },
+        "types_spaces": {
+            "space": "none"
+        }
+    },
+    "exclude": [
+        "docker",
+        "docker-mysql",
+        "docker-redis",
+        "node_modules",
+        "vendor",
+        "storage",
+        "bootstrap",
+        "public",
+        "config",
+        "lang"
+    ]
+}

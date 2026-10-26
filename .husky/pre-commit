@@ -1,0 +1,11 @@
+#npm run format
+#npm run lint
+#npm test
+# docker compose exec app ./vendor/bin/phpcs
+# docker compose exec app ./vendor/bin/pint
+#docker compose exec app ./vendor/bin/duster fix
+#php artisan test
+
+#./vendor/bin/phpstan analyse --memory-limit=2G
+#./vendor/bin/phpcs app/Http/Controllers/UserController.php --standard=psr12 -n
+# ./vendor/bin/pint
