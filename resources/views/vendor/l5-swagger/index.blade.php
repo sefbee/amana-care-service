@@ -6,7 +6,7 @@
     <link rel="stylesheet" type="text/css" href="{{ l5_swagger_asset($documentation, 'swagger-ui.css') }}">
     <link rel="icon" type="image/png" href="{{ l5_swagger_asset($documentation, 'favicon-32x32.png') }}" sizes="32x32"/>
     <link rel="icon" type="image/png" href="{{ l5_swagger_asset($documentation, 'favicon-16x16.png') }}" sizes="16x16"/>
-    <style>
+    <style nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
     html
     {
         box-sizing: border-box;
@@ -26,7 +26,7 @@
     }
     </style>
     @if(config('l5-swagger.defaults.ui.display.dark_mode'))
-        <style>
+        <style nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
             body#dark-mode,
             #dark-mode .scheme-container {
                 background: #1b1b1b;
@@ -116,9 +116,9 @@
 <body @if(config('l5-swagger.defaults.ui.display.dark_mode')) id="dark-mode" @endif>
 <div id="swagger-ui"></div>
 
-<script src="{{ l5_swagger_asset($documentation, 'swagger-ui-bundle.js') }}"></script>
-<script src="{{ l5_swagger_asset($documentation, 'swagger-ui-standalone-preset.js') }}"></script>
-<script>
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ l5_swagger_asset($documentation, 'swagger-ui-bundle.js') }}"></script>
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ l5_swagger_asset($documentation, 'swagger-ui-standalone-preset.js') }}"></script>
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
     window.onload = function() {
         // Build a system
         const ui = SwaggerUIBundle({

@@ -16,6 +16,10 @@ class RolePermissionCheck
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
+        if ($user->isPlatformSuperuser() || $request->is('admin-console/*')) {
+            return $next($request);
+        }
+
         $action = \Route::current()->action['controller'];
         $action_name = explode('Controllers\\', $action)[1];
         if (! $user->hasPermission($action_name)) {

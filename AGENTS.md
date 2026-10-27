@@ -9,6 +9,7 @@
 - Preserve the existing Laravel application patterns: Laravel 12, PHP 8.2+, Blade admin UI, named routes, middleware/RBAC, shared Blade components, Yajra DataTables for server-side tables, Eloquent models/migrations, and Spatie ActivityLog where the feature changes operational data.
 - The CMS is a headless content-management module for a separate public Next.js/React frontend. Build CMS administration in this application using the UI rules below; do not turn the staff admin into the public website or silently replace the documented frontend architecture.
 - Respect the production SRS boundaries: no clinical records, payroll processing, automated AI matching/assignment, or family/caregiver login portals unless an approved SRS change explicitly adds them. Matching may filter and explain candidates; people make decisions.
+- Keep the Platform Superuser distinct from the SRS System Administrator. The Platform Superuser may bypass ordinary permissions, but each privileged request/sensitive access must be audited; the SRS System Administrator remains restricted from PII, private vault contents, and safeguarding case details.
 
 ## Shared application UI conventions
 
@@ -25,11 +26,11 @@ Apply these rules to every new page and every page you change in this repository
 
 ## CRUD page structure
 
-- Use `resources/views/users/index.blade.php` as the list-page reference: a full-width `.row` and `.col-md-12`, page actions above the table, and a `.card` containing the table.
+- Use `resources/views/admin/identity/users/index.blade.php` as the list-page reference: a full-width `.row` and `.col-md-12`, page actions above the table, and a `.card` containing the table.
 - Render server-side tables with the shared `<x-datatable>` component. Keep table column definitions in the view and data/query behavior in the controller.
-- Use `resources/views/users/create.blade.php` and `resources/views/users/edit.blade.php` as form-page references: `.row` with `.col-md-8.offset-md-2`, the shared `<x-alert :show_validations="false" />`, then a `.card.shadow-sm` with the form inside its body.
+- Use `resources/views/admin/identity/users/create.blade.php` and `resources/views/admin/identity/users/edit.blade.php` as form-page references: `.row` with `.col-md-8.offset-md-2`, the shared `<x-alert :show_validations="false" />`, then a `.card.shadow-sm` with the form inside its body.
 - Do not add a card header whose only purpose is repeating the page title. Keep submit and cancel actions together at the end of the form.
-- Use `resources/views/users/show.blade.php` as the detail-page reference: organized responsive cards, with no second page title in the content.
+- Use `resources/views/admin/identity/users/show.blade.php` as the detail-page reference: organized responsive cards, with no second page title in the content.
 - For card section headings, use `<h6 class="card-title mb-0 fw-bold">…</h6>` inside `.card-header` so the theme vertically centers the heading within its header.
 
 ## Consistency and scope
@@ -38,3 +39,12 @@ Apply these rules to every new page and every page you change in this repository
 - Reuse existing Blade components and layout sections before introducing new markup or styles.
 - When updating an existing page, preserve its behavior and data while bringing its page structure into these conventions.
 - Do not duplicate breadcrumbs inside page content or introduce a separate page-level heading component.
+
+
+## Code ownership folders
+
+- Put internal staff business features under `app/Admin` and staff Blade pages under `resources/views/admin`. Register staff web routes in `routes/admin.php`.
+- Put public-website CMS administration and public CMS API code under `app/FrontEnd/Cms`, with Blade administration pages under `resources/views/front-end/cms`. Register CMS admin routes in `routes/front-end.php` and public CMS API routes in `routes/front-end-api.php`. The public Next.js/React site remains a separate application.
+- Keep authentication, middleware, shared UI components/layouts, shared helpers, providers, and Laravel bootstrap files in their framework/shared locations. Keep migrations under `database/migrations`.
+- Put admin seeders under `database/seeders/Admin` and CMS-specific seeders under `database/seeders/FrontEnd/Cms`. `database/seeders/Admin/MenuSeeder.php` is the sole menu-creation seeder.
+- See `docs/CODEBASE_STRUCTURE.md` for the full directory map and placement rules.

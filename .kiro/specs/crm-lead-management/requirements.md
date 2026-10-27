@@ -55,6 +55,7 @@ The two core aggregates are **Lead** (pre-conversion prospect) and **Household**
 13. THE Lead_Manager SHALL set the initial `consent_status` to Unknown upon creation unless explicitly provided.
 14. THE Lead_Manager SHALL accept an optional `owner_id` referencing a valid active User.
 15. WHEN a Lead is saved, THE Lead_Manager SHALL record the creating User's id in `created_by`.
+16. THE Lead_Manager SHALL require a source attribution string of at most 150 characters; historical records without source attribution SHALL remain explicitly marked as unknown rather than receiving fabricated values.
 
 ---
 
@@ -124,12 +125,13 @@ The two core aggregates are **Lead** (pre-conversion prospect) and **Household**
 
 #### Acceptance Criteria
 
-1. THE Consent_Manager SHALL store one ConsentRecord per Lead per channel, with `status` (Granted, Withdrawn, Unknown), `source` (free text, max 200 chars), and `consented_at` timestamp.
-2. WHEN consent is Granted for any channel, THE Consent_Manager SHALL set the parent Lead's `consent_status` to Granted.
-3. WHEN all per-channel consents are Withdrawn or Unknown, THE Consent_Manager SHALL set the parent Lead's `consent_status` to Withdrawn.
-4. WHEN a ConsentRecord `status` is updated to Withdrawn, THE Consent_Manager SHALL record a `withdrawn_at` timestamp.
+1. THE Consent_Manager SHALL append ConsentRecord history per Lead and communication channel, with `status` (Granted, Withdrawn, Unknown), `source` (free text, max 200 chars), and event timestamps; channels include Email, SMS, WhatsApp and Phone.
+2. WHEN the latest record for any channel is Granted, THE Consent_Manager SHALL set the parent Lead's `consent_status` to Granted.
+3. WHEN every channel's latest record is Withdrawn or Unknown, THE Consent_Manager SHALL set the parent Lead's `consent_status` to Withdrawn; when no consent history exists, it SHALL remain Unknown.
+4. WHEN a withdrawal is recorded, THE Consent_Manager SHALL append a new row with `withdrawn_at`; existing consent rows SHALL never be edited or deleted.
 5. THE Consent_Manager SHALL append, not overwrite, consent history; each status change SHALL create a new ConsentRecord row with its own timestamp.
 6. WHEN a user attempts to add an Outbound CommunicationLog entry and the Lead `consent_status` is not Granted, THE Consent_Manager SHALL surface an inline warning with a link to the consent management screen.
+7. WHEN an outbound Email or SMS communication is recorded, THE Consent_Manager SHALL require the latest consent record for that exact channel to be Granted, evaluated under a lock on the Lead at record time.
 
 ---
 
@@ -173,13 +175,14 @@ The two core aggregates are **Lead** (pre-conversion prospect) and **Household**
 
 #### Acceptance Criteria
 
-1. THE Household_Manager SHALL require at least one HouseholdContact with `role` of Primary for any persisted Household.
-2. THE Household_Manager SHALL require `name` as a non-empty string of at most 150 characters per contact.
-3. THE Household_Manager SHALL require `role` to be one of: Primary, Billing, Emergency.
-4. THE Household_Manager SHALL require `phone` in the same format as Lead phone validation (Bangladesh mobile or international E.164).
+1. THE Household_Manager SHALL require at least one active Primary Decision Maker and one active Billing Contact for every persisted Household.
+2. A single HouseholdContact SHALL be allowed to hold both Primary Decision Maker and Billing Contact responsibilities.
+3. THE Household_Manager SHALL require `name` as a non-empty string of at most 150 characters per contact.
+4. THE Household_Manager SHALL require `phone` in the same format as Lead phone validation (Bangladesh mobile or international E.164) and store a normalized comparison value.
 5. THE Household_Manager SHALL accept an optional `email` per contact conforming to RFC 5321 format with a maximum length of 254 characters.
-6. WHEN a contact with `role` of Primary is deleted and no other Primary contact exists, THE Household_Manager SHALL reject the deletion and return a validation error.
-7. THE Household_Manager SHALL allow a Household to have at most one Primary contact.
+6. WHEN a contact is deleted, deactivated, or has a responsibility removed, THE Household_Manager SHALL reject the change if it would leave no active Primary Decision Maker or no active Billing Contact.
+7. THE Household_Manager SHALL allow at most one active Primary Decision Maker and one active Billing Contact per Household, with the same contact permitted to hold both.
+8. THE Household_Manager SHALL retain Emergency Contact as an independently assignable responsibility.
 
 ---
 
@@ -190,13 +193,11 @@ The two core aggregates are **Lead** (pre-conversion prospect) and **Household**
 #### Acceptance Criteria
 
 1. THE Household_Manager SHALL require `first_name` as a non-empty string of at most 100 characters per CareRecipient.
-2. THE Household_Manager SHALL require `recipient_type` to be one of: Child, Adult, Senior.
-3. THE Household_Manager SHALL require either `date_of_birth` (a valid past calendar date) or `age_band` (a non-empty string from the predefined picklist: 0–5, 6–12, 13–17, 18–59, 60–74, 75+); IF neither is provided, THEN THE Household_Manager SHALL return a validation error.
-4. THE Household_Manager SHALL accept an optional `relationship` string of at most 100 characters describing the care recipient's relation to the Primary contact.
-5. THE Household_Manager SHALL accept an optional `support_notes` field of at most 1000 characters; this field SHALL be marked non-clinical and SHALL not accept text matching diagnosis keywords (diagnoses, drug names, prescriptions).
-6. THE Household_Manager SHALL accept an optional `routines` field of at most 1000 characters.
-7. THE Household_Manager SHALL accept an optional `dietary_restrictions` field of at most 500 characters.
-8. WHEN `recipient_type` is Child, THE Household_Manager SHALL mark the CareRecipient record as Sensitive and restrict its visibility to users with the sensitive_data_view permission.
+2. THE Household_Manager SHALL require `age_band` from a centrally configured picklist; date of birth SHALL NOT be collected. The values currently configured are provisional until the product owner approves age-band boundaries because the final SRS gives examples but no complete list.
+3. THE Household_Manager SHALL accept an optional `relationship` string of at most 100 characters describing the care recipient's relation to the Primary contact.
+4. THE Household_Manager SHALL derive the Child/Adult/Senior classification from the configured age-band mapping; users SHALL NOT set this classification directly.
+5. WHEN the derived classification is Child, THE Household_Manager SHALL mark the CareRecipient record as Sensitive and restrict its visibility to users with the sensitive_data_view permission.
+6. CareRecipient entry SHALL NOT accept or expose free-text support, routine, dietary or clinical information; service-specific non-clinical needs belong to a Service Request assessment.
 
 ---
 
@@ -207,7 +208,7 @@ The two core aggregates are **Lead** (pre-conversion prospect) and **Household**
 #### Acceptance Criteria
 
 1. THE Lead_Manager SHALL validate that the `notes` field does not contain any string matching the non-clinical keyword blocklist before persisting the record.
-2. THE Household_Manager SHALL validate that `support_notes`, `routines`, `access_notes`, and `CareRecipient.support_notes` do not contain any string matching the non-clinical keyword blocklist before persisting the record.
+2. THE Household_Manager SHALL validate that `access_notes` does not contain any string matching the non-clinical keyword blocklist before persisting the record; CareRecipient records SHALL have no free-text assessment fields.
 3. WHEN a non-clinical keyword is detected in any notes field, THE Lead_Manager or Household_Manager (as applicable) SHALL reject the input and return a validation error identifying the offending field and the nature of the violation.
 4. THE Lead_Manager and Household_Manager SHALL maintain a configurable non-clinical keyword blocklist stored in application configuration (not hard-coded in model classes).
 
@@ -296,3 +297,14 @@ The two core aggregates are **Lead** (pre-conversion prospect) and **Household**
 2. THE Lead_Manager SHALL return a validation error WHEN `area` is provided but does not match a value in the Dhaka Zone picklist.
 3. THE Household_Manager SHALL return a validation error WHEN `area` does not match a value in the Dhaka Zone picklist.
 4. THE Lead_Manager and Household_Manager SHALL expose the Dhaka Zone picklist values via a configuration key (`crm.dhaka_zones`) rather than embedding them in migration files or model classes.
+
+---
+
+### Requirement 18: Household Service Requests and Non-Clinical Assessment
+
+1. THE CRM SHALL allow an authorized Coordinator to create a ServiceRequest for an authorized Household, referencing an active service type and recording its live-in/out arrangement and schedule.
+2. THE assessment form SHALL show service-specific fields: childcare fields for number of children, school routines and play habits; elderly-care fields for mobility levels, companionship needs and dietary restrictions.
+3. THE CRM SHALL reject unknown assessment keys and forbidden clinical terminology before persistence. Care-recipient records remain limited to the final-SRS care-recipient fields; request needs belong on ServiceRequest.
+4. THE CRM SHALL preserve the parent household ownership boundary on direct request routes and audit creation without copying sensitive assessment text into general activity properties.
+
+**Implementation decisions still requiring confirmation:** the final SRS does not define the exact schedule JSON shape, ServiceRequest status lifecycle, service-specific field option sets, waitlist/capacity policy, or reassignment rules. The current weekdays/start/end representation and initial `Open` status are provisional until approved. Do not use this provisional schedule as a placement-overlap guarantee.

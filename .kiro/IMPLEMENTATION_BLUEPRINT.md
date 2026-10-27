@@ -23,7 +23,7 @@ Amanah is a staff-facing operations platform for the full care-service lifecycle
 6. Finance & Operations
 7. Quality Assurance & Safeguarding
 
-Identity and access control, dashboards/work queues, notifications, reports, settings, audit, data migration, retention, and background jobs are shared platform capabilities supporting the modules; do not count them as additional top-level modules unless a future approved SRS does so.
+Identity and access control, dashboards/work queues, notifications, reports, settings, audit, data migration, retention, and background jobs are shared platform capabilities supporting the modules; do not count them as additional top-level modules unless a future approved SRS does so. The user-approved Platform Superuser (PSU) is distinct from the restricted SRS System Administrator (SA); PSU sensitive access must be explicitly audited.
 
 ## Module scope
 
@@ -128,8 +128,9 @@ For each requested feature:
 
 ## Current planning/documentation status
 
-- `.kiro/IMPLEMENTATION_AUDIT_AND_PLAN.md` is the static repository audit and recommended dependency-based implementation sequence; update it as implementation status changes.
-- `.kiro/specs/crm-lead-management/` contains the only detailed module spec currently in the repository.
-- No detailed Kiro specs for the other six top-level modules were present when this blueprint was created.
-- Existing service, price-version, user, and admin-console code should be audited against the production SRS before marking those capabilities complete.
+- `.kiro/IMPLEMENTATION_AUDIT_AND_PLAN.md` is the current master audit and dependency-ordered plan. It records module status, the superadmin/SA policy decision, phase exit gates, and completion evidence; update it as work is accepted.
+- `.kiro/specs/crm-lead-management/` and `.kiro/specs/public-website-cms/` contain the original detailed specs; `.kiro/specs/<module>/` contains initial specs for the other modules and shared platform. `.kiro/traceability/FINAL_SRS_TRACEABILITY.md` is the cross-module SRS trace index.
+- The Public Website CMS Laravel backend/staff admin and a separate Next.js App Router client under `public-site/` are implemented in this repository. Acceptance remains partial until launch URLs/content are approved and the client passes production build, staging API/CMS, privacy, accessibility, performance, and lead-capture acceptance. See `.kiro/specs/public-website-cms/public-page-inventory.md` and `.kiro/IMPLEMENTATION_AUDIT_AND_PLAN.md`.
+- Initial detailed Kiro specs for Catalog & Pricing, Caregiver Recruitment/Vault, Matching/Placement, Finance/Operations, Quality/Safeguarding, and shared platform are now present under `.kiro/specs/`; each remains a planning baseline until traced to acceptance evidence.
+- Existing service, price-version, CRM, user, and admin-console code is partial foundation and must be audited against the production SRS before marking any capability complete. Current code ownership folders are documented in `docs/CODEBASE_STRUCTURE.md`.
 - Create additional Kiro module specs under `.kiro/specs/<module-slug>/` as modules are planned; each should include requirements, design, and tasks and link back to this blueprint.

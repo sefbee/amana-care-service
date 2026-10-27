@@ -15,7 +15,7 @@
     <link href="{{ asset("theme/plugins/global/plugins.bundle.css") }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset("theme/css/style.bundle.css") }}" rel="stylesheet" type="text/css" />
     <!--end::Global Stylesheets Bundle-->
-    <script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
         // Frame-busting to prevent site from being loaded within a frame without permission (click-jacking) if (window.top != window.self) { window.top.location.replace(window.self.location.href); }
     </script>
 </head>
@@ -24,7 +24,7 @@
         class="app-blank bgi-size-cover bgi-position-center bgi-no-repeat"
     >
         <!--begin::Theme mode setup on page load-->
-        <script>
+        <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
             var defaultThemeMode = "light";
             var themeMode;
             if (document.documentElement) {
@@ -58,7 +58,7 @@
 
         <div class="d-flex flex-column flex-root" id="kt_app_root">
             <!--begin::Page bg image-->
-            <style>
+            <style nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
                 body {
                     background-image: url('{{ asset("theme/media/auth/bg1.jpg") }}');
                 }
@@ -96,12 +96,12 @@
         </div>
 
         <!--begin::Javascript-->
-        <script>
+        <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
             var hostUrl = "assets/";
         </script>
         <!--begin::Global Javascript Bundle(mandatory for all pages)-->
-        <script src="{{ asset("theme/plugins/global/plugins.bundle.js") }}"></script>
-        <script src="{{ asset("theme/js/scripts.bundle.js") }}"></script>
+        <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset("theme/plugins/global/plugins.bundle.js") }}"></script>
+        <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset("theme/js/scripts.bundle.js") }}"></script>
         <!--end::Global Javascript Bundle-->
         <!--end::Javascript-->
     </body>

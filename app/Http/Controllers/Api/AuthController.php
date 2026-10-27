@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Services\FileUploadService;
+use App\Admin\Models\User;
+use App\Admin\Services\FileUploadService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -51,7 +51,7 @@ class AuthController extends Controller
                 $user->tokens()->delete();
             }
 
-            $token = $user->createToken($request->device_data ?? 'API token');
+            $token = $user->createToken($request->device_data ?? 'API token', ['*']);
 
             $user->last_login = Carbon::now()->toDateTimeString();
             $user->save();

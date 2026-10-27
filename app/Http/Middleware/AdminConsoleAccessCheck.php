@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Admin\Models\Role;
+
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,9 +17,9 @@ class AdminConsoleAccessCheck
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $role = session('role') ?? '';
-        $allowed_roles = ['admin'];
-        if ($request->user()->is_superuser || ($role && in_array($role->slug, $allowed_roles))) {
+        $role = Role::query()->find(session('role_id'));
+        $allowedRoles = ['sa'];
+        if ($request->user()->isPlatformSuperuser() || ($role && in_array($role->slug, $allowedRoles, true))) {
             return $next($request);
         }
         abort(401);

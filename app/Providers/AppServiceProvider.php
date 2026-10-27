@@ -2,13 +2,15 @@
 
 namespace App\Providers;
 
-use App\Models\User;
+use App\Admin\Models\User;
+use App\Admin\Models\OperationalNotification;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -72,6 +74,24 @@ class AppServiceProvider extends ServiceProvider
             // dd($ability);
 
             return $user->hasPermission($ability);
+        });
+
+        View::composer('components.header', function ($view): void {
+            $userId = auth()->id();
+            if (! $userId) {
+                $view->with(['notificationUnreadCount' => 0, 'recentNotifications' => collect()]);
+                return;
+            }
+
+            $inbox = OperationalNotification::query()
+                ->where('recipient_user_id', $userId)
+                ->where('channel', 'in_app')
+                ->where('status', 'Delivered');
+
+            $view->with([
+                'notificationUnreadCount' => (clone $inbox)->whereNull('read_at')->count(),
+                'recentNotifications' => (clone $inbox)->latest('id')->limit(5)->get(),
+            ]);
         });
     }
 }

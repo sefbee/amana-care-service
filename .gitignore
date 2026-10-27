@@ -1,5 +1,8 @@
 /.phpunit.cache
 /node_modules
+/public-site/node_modules
+/public-site/.next
+/public-site/.env.local
 /public/build
 /public/hot
 /public/storage

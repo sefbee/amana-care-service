@@ -47,7 +47,7 @@ trait BuildsQueries
         $formId = 'destroy-form-' . $this->id;
 
         return "<a class='btn btn-light-danger btn-icon btn-sm me-2' title='Delete' href='#'
-                onclick='event.preventDefault(); confirmDelete(`{$formId}`);'><i class='fas fa-trash-alt'></i>
+                data-confirm-delete='{$formId}'><i class='fas fa-trash-alt'></i>
             </a>
 
             <form id='{$formId}' action='" . $url . "' method='POST' class='d-none'>

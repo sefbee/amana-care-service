@@ -31,4 +31,18 @@ return [
         ],
     ],
 
+    'safeguarding_sms' => [
+        'url' => env('SAFEGUARDING_SMS_URL'),
+        'api_key' => env('SAFEGUARDING_SMS_API_KEY'),
+        'secret_key' => env('SAFEGUARDING_SMS_SECRET_KEY'),
+        'sender_id' => env('SAFEGUARDING_SMS_SENDER_ID'),
+    ],
+
+    'notifications_sms' => [
+        'url' => env('NOTIFICATIONS_SMS_URL'),
+        'api_key' => env('NOTIFICATIONS_SMS_API_KEY'),
+        'secret_key' => env('NOTIFICATIONS_SMS_SECRET_KEY'),
+        'sender_id' => env('NOTIFICATIONS_SMS_SENDER_ID'),
+    ],
+
 ];

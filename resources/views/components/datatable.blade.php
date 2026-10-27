@@ -16,7 +16,7 @@
 @section('datatable_styles')
     <link href="{{ asset('theme/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
 
-    <style>
+    <style nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
         table.table.dataTable>tbody>tr>td {
             font-size: 1.1rem !important;
         }
@@ -24,7 +24,7 @@
 @endsection
 
 @section('datatable_scripts')
-    <script src="{{ asset('theme/plugins/custom/datatables/datatables.bundle.js') }}"></script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset('theme/plugins/custom/datatables/datatables.bundle.js') }}"></script>
 @endsection
 
 @php
@@ -40,7 +40,7 @@
 @endphp
 
 @push('scripts')
-    <script type="text/javascript">
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" type="text/javascript">
         $(document).ready(function() {
             var searching = '{{ $searching == true ? 'true' : 'false' }}';
             var paging = '{{ $paging == true ? 'true' : 'false' }}';

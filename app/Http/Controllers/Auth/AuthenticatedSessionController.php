@@ -4,11 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Models\User;
+use App\Admin\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -35,8 +34,7 @@ class AuthenticatedSessionController extends Controller
 
         if ($roles->count()) {
             $primary_role = $user->roles()->where('is_primary', 1)->first();
-            session(['roles' => $roles]);
-            session(['role' => $primary_role]);
+            $request->session()->forget(['roles', 'role']);
             session(['role_id' => $primary_role->id]);
         }
 
@@ -51,7 +49,6 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        Cache::forget('user_permissions_' . auth()->user()->id);
 
         Auth::guard('web')->logout();
 
@@ -73,8 +70,7 @@ class AuthenticatedSessionController extends Controller
             $roles = $user->roles;
             if ($roles->count()) {
                 $primary_role = $user->roles()->where('is_primary', 1)->first();
-                session(['roles' => $roles]);
-                session(['role' => $primary_role]);
+                $request->session()->forget(['roles', 'role']);
                 session(['role_id' => $primary_role->id]);
             }
 
@@ -82,6 +78,7 @@ class AuthenticatedSessionController extends Controller
             $user->save();
 
             Auth::login($user);
+            $request->session()->regenerate();
 
             return redirect()->intended(route('dashboard', absolute: false));
         }

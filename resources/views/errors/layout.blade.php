@@ -7,7 +7,7 @@
         <title>@yield('title')</title>
 
         <!-- Styles -->
-        <style>
+        <style nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
             html, body {
                 background-color: #fff;
                 color: #636b6f;

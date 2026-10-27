@@ -40,10 +40,10 @@
                 <div class="menu menu-rounded menu-column menu-lg-row my-5 my-lg-0 align-items-stretch fw-semibold px-2 px-lg-0"
                     id="kt_app_header_menu" data-kt-menu="true">
 
-                    @if (auth()->user()->is_superuser)
+                    @if (auth()->user()->isPlatformSuperuser())
                     <div class="menu-item here show menu-here-bg menu-lg-down-accordion me-0 me-lg-2">
                         <span class="menu-link">
-                            <span class="menu-title">Role: Super Admin</span>
+                            <span class="menu-title">Role: Platform Superuser</span>
                         </span>
                     </div>
                     @elseif (session('role'))
@@ -60,6 +60,15 @@
 
             <!--begin::Navbar-->
             <div class="app-navbar flex-shrink-0">
+
+                <div class="app-navbar-item ms-1 ms-md-4">
+                    <a href="{{ route('notifications.index') }}" class="btn btn-icon btn-custom btn-icon-muted btn-active-light btn-active-color-primary w-35px h-35px position-relative" aria-label="Notifications">
+                        <i class="ki-outline ki-notification-on fs-2"></i>
+                        @if (($notificationUnreadCount ?? 0) > 0)
+                            <span class="position-absolute top-0 start-100 translate-middle badge badge-circle badge-danger">{{ $notificationUnreadCount > 9 ? '9+' : $notificationUnreadCount }}</span>
+                        @endif
+                    </a>
+                </div>
 
                 <div class="menu menu-rounded menu-column menu-lg-row my-5 my-lg-0 align-items-stretch fw-semibold px-2 px-lg-0"
                      id="kt_app_header_menu" data-kt-menu="true">
@@ -146,7 +155,7 @@
                                 <!--end::Username-->
                             </div>
                         </div>
-                        @if(auth()->user()->is_superuser)
+                        @if(auth()->user()->isPlatformSuperuser())
                         <div class="separator my-2"></div>
                         <div class="menu-item px-5">
                             <a href="{{ route('system-info') }}" class="menu-link px-5">System Info</a>
@@ -159,9 +168,7 @@
                         <div class="separator my-2"></div>
                         <!--begin::Menu item-->
                         <div class="menu-item px-5">
-                            <a href="#"
-                                onclick="event.preventDefault(); document.getElementById('logoutForm').submit()"
-                                class="menu-link px-5">
+                            <a href="#" data-logout-form="logoutForm" class="menu-link px-5">
                                 Sign Out
 
                                 <form method="POST" action="{{ route('logout') }}" id="logoutForm">

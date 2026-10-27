@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Payment receipt {{ $payment->receipt_number }}</title><style nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">body{font:12px sans-serif;color:#222}.muted{color:#666}.box{border:1px solid #bbb;padding:16px;margin:20px 0}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left}.right{text-align:right}</style></head>
+<body>
+    <h1>Amanah</h1><p class="muted">Payment receipt</p>
+    <div class="box"><table><tr><th>Receipt number</th><td>{{ $payment->receipt_number }}</td><th>Date received</th><td>{{ $payment->paid_at->format('d M Y') }}</td></tr><tr><th>Received from</th><td>{{ $payment->household->display_name }}</td><th>Payee</th><td>{{ $payment->payee }}</td></tr><tr><th>Method</th><td>{{ $payment->method }}</td><th>Reference</th><td>{{ $payment->reference_id }}</td></tr><tr><th>Status</th><td>{{ $payment->status }}</td><th>Total</th><td>BDT {{ $payment->amount }}</td></tr></table></div>
+    <h3>Invoice allocations</h3><table><thead><tr><th>Invoice</th><th>Billing period</th><th class="right">Allocated</th></tr></thead><tbody>@foreach ($payment->allocations as $allocation)<tr><td>{{ $allocation->invoice->invoice_number }}</td><td>{{ $allocation->invoice->period_start->format('d M Y') }} – {{ $allocation->invoice->period_end->format('d M Y') }}</td><td class="right">BDT {{ $allocation->amount }}</td></tr>@endforeach</tbody></table>
+    <p class="muted">Recorded by {{ $payment->recorder?->name ?? 'Amanah Finance' }}. This receipt confirms payment recording and does not itself confirm bank reconciliation.</p>
+</body></html>

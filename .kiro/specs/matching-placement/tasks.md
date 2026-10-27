@@ -1,0 +1,19 @@
+# Implementation Tasks — Matching & Placement Engine
+
+**Final SRS coverage:** FR-140–FR-142, FR-144, FR-160–FR-162, AT-013, §2.2 exclusions
+
+## Tasks
+
+- [ ] Trace matching, placement and replacement SRS criteria; approve hard constraints, schedule representation, replacement boundary and DB overlap strategy.
+- [x] Exclude caregiver conflict-blocked for the active staff user from candidate pools and family summaries; enforce the block on candidate decision/response and placement activation/transition/agreement reveal routes. Full non-UI/export and acceptance coverage remains under shared-platform RL-05.
+- [ ] Implement candidate filtering/exclusion reasons and soft-match indicators over Ready caregivers.
+  - Partial implementation: household-scoped candidate review re-evaluates readiness, filters OM-configured required skills, live-in/out preference and potential weekly minute overlaps, and provides exclusion reasons plus a zone preference soft flag. Results remain preliminary because request date ranges and all documented hard constraints/soft indicators are not yet represented.
+- [ ] Implement rationale-required proposals, 1–3 candidates, human decisions/responses and redacted PDF.
+  - Partial implementation: CO can save a 1–3 candidate draft with a required rationale; caregiver readiness/skill/arrangement filters are rechecked inside the save transaction and the creation is audited. Staff can record an externally received family acceptance/decline and caregiver acceptance/decline per candidate with required rationales; immutable actor-attributed events are visible in household history. Any failed readiness reevaluation and the nightly police-expiry job withdraw affected Draft proposals. Matching excludes potential recurring weekday/minute conflicts, but date-aware matching remains open because the request has no requested-date period. A DomPDF family summary uses an explicit allowlist and published CMS branding, omits last names, National IDs, exact addresses and assessment/rationale content, and is audit logged. System delivery remains unimplemented. A response alone does not activate a placement.
+- [ ] Implement placement lifecycle, immutable quote/price reference, agreement upload gate and audit events.
+  - Partial implementation: activation requires an accepted family decision, current Ready state, configured skill and arrangement compatibility, an approved quote tied to the currently effective price version, and a clean signed-agreement file in private storage. Placement and immutable event snapshots are recorded; future start dates create Scheduled placements. A daily job rechecks readiness before activation; unready/inactive caregivers remain Scheduled. Audited Pause/End/Cancel transitions are present. CO/OM/PSU can reveal a private agreement through an object-scoped STS URL lasting 300 seconds after providing an audited reason. Resume policy, caregiver response and replacement remain open.
+- [ ] Implement transaction/database-level minute overlap invariant and concurrency handling.
+  - Partial implementation: weekly schedules are normalized to weekday/minute slots. Activation locks the caregiver row, checks all Active/Scheduled placements whose date ranges intersect, and rejects intersecting minutes inside the same transaction. Matching also excludes potential recurring weekday/time conflicts. Run the engine-specific concurrent activation acceptance case before claiming this invariant complete; Service Requests still need an approved requested-date period for date-aware preliminary matching.
+- [ ] Implement pause/end/cancel/replacement policy evaluation and OM exception record.
+- [ ] Verify access boundaries, proposal withdrawal after readiness revocation and AT-013 under concurrent activation.
+- [ ] Record traceability and operational evidence before completion.

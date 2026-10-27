@@ -8,7 +8,7 @@ return [
     'default_user_password' => env('USER_DEFAULT_PASSWORD'),
     'superadmin' => [
         'userid' => env('SUPERADMIN_USERID', 'superadmin'),
-        'name' => env('SUPERADMIN_NAME', 'Super Admin'),
+        'name' => env('SUPERADMIN_NAME', 'Platform Superuser'),
         'email' => env('SUPERADMIN_EMAIL'),
         'password' => env('SUPERADMIN_PASSWORD'),
     ],

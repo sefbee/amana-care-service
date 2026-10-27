@@ -2,7 +2,8 @@
 
 namespace App\View\Components;
 
-use App\Models\Menu;
+use App\Admin\Models\Menu;
+use App\Admin\Models\Role;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Cache;
@@ -40,12 +41,10 @@ class LeftNav extends Component
         $user = auth()->user();
 
         // return Cache::remember("menus_{$user->id}", 60, function () use ($user) {
-        if ($user->is_superuser) {
+        if ($user->isPlatformSuperuser()) {
             $menus = Menu::active()->orderBy('menu_order', 'asc')->get();
         } else {
-            // $role_id = session('role_id');
-            $role = session()->has('role') ? session('role') : null;
-            // Role::find($role_id);
+            $role = Role::query()->find(session('role_id'));
             $menus = $role ? $role->menus()->active()->orderBy('menu_order', 'asc')->get() : [];
         }
 

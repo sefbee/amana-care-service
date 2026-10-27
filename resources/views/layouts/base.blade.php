@@ -14,7 +14,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset("img/favicon.ico?v=2") }}" />
     <meta name="theme-color" content="{{ config('starter.primary_color') }}">
-    <style>:root { --bs-primary: {{ config('starter.primary_color') }}; }</style>
+    <style nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">:root { --bs-primary: {{ config('starter.primary_color') }}; }</style>
     <!--begin::Fonts(mandatory for all pages)-->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
     <!--end::Fonts-->
@@ -28,16 +28,16 @@
     <link href="{{ asset('theme/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
     <!--end::Global Stylesheets Bundle-->
 
-    <script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
         // Frame-busting to prevent site from being loaded within a frame without permission (click-jacking)
         if (window.top != window.self) { window.top.location.replace(window.self.location.href); }
     </script>
     <!-- Scripts -->
-    <script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
         window.Laravel = {!! json_encode(['csrfToken' => csrf_token()]) !!};
     </script>
     {{--    @livewireStyles--}}
-    {{-- <script src="{{ asset('vendor/ckeditor/ckeditor.js') }}"></script> --}}
+    {{-- <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset('vendor/ckeditor/ckeditor.js') }}"></script> --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @yield('styles')
@@ -48,7 +48,7 @@
       data-kt-app-sidebar-push-header="true" data-kt-app-sidebar-push-toolbar="true"
       data-kt-app-sidebar-push-footer="true" data-kt-app-toolbar-enabled="true" class="app-default">
 <!--begin::Theme mode setup on page load-->
-<script>
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
     var defaultThemeMode = "light";
     var themeMode;
     if (document.documentElement) {
@@ -162,21 +162,21 @@
 
 
 <!--begin::Javascript-->
-<script>
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
     var hostUrl = "assets/";
 </script>
 <!--begin::Global Javascript Bundle(mandatory for all pages)-->
-<script src="{{ asset('theme/plugins/global/plugins.bundle.js') }}"></script>
-<script src="{{ asset('theme/js/scripts.bundle.js') }}"></script>
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset('theme/plugins/global/plugins.bundle.js') }}"></script>
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset('theme/js/scripts.bundle.js') }}"></script>
 <!--end::Global Javascript Bundle-->
 
 
 <!--begin::Vendors Javascript(used for this page only)-->
-{{-- <script src="{{ asset('theme/plugins/custom/fullcalendar/fullcalendar.bundle.js') }}"></script> --}}
-{{-- <script src="{{ asset('theme/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script> --}}
-{{-- <script src="{{ asset("theme/plugins/custom/datatables/datatables.bundle.js") }}"></script> --}}
+{{-- <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset('theme/plugins/custom/fullcalendar/fullcalendar.bundle.js') }}"></script> --}}
+{{-- <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset('theme/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script> --}}
+{{-- <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset("theme/plugins/custom/datatables/datatables.bundle.js") }}"></script> --}}
 
-<script type="text/javascript">
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" type="text/javascript">
     $(document).ready(function() {
         $('.select2').select2();
 
@@ -219,7 +219,8 @@
 
     function confirmDelete(formId = 'deleteForm') {
         if (confirm('Are you sure want to delete?')) {
-            $('#' + formId).submit();
+            document.getElementById(formId)?.requestSubmit();
+            return true;
         } else {
             return false;
         }
@@ -248,6 +249,55 @@
             return false;
         }
     }
+
+    document.addEventListener('submit', function(event) {
+        const form = event.target;
+        const message = form.dataset.confirm || event.submitter?.dataset.confirm;
+        if (message && !window.confirm(message)) {
+            event.preventDefault();
+        }
+    });
+
+    document.addEventListener('click', function(event) {
+        const target = event.target instanceof Element ? event.target : null;
+        if (!target) return;
+
+        const deleteButton = target.closest('[data-confirm-delete]');
+        if (deleteButton) {
+            event.preventDefault();
+            confirmDelete(deleteButton.dataset.confirmDelete);
+            return;
+        }
+
+        const logoutLink = target.closest('[data-logout-link], [data-logout-form]');
+        if (logoutLink) {
+            event.preventDefault();
+            const formId = logoutLink.dataset.logoutForm;
+            const logoutForm = formId ? document.getElementById(formId) : logoutLink.closest('form');
+            logoutForm?.requestSubmit();
+            return;
+        }
+
+        const confirmLink = target.closest('a[data-confirm]');
+        if (confirmLink && !window.confirm(confirmLink.dataset.confirm)) {
+            event.preventDefault();
+        }
+    });
+
+    document.addEventListener('change', function(event) {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+
+        if (target.matches('[data-check-all]')) {
+            document.getElementsByName(target.dataset.checkAll).forEach(function(input) {
+                input.checked = target.checked;
+            });
+        }
+
+        if (target.matches('[data-submit-on-change]')) {
+            target.form?.requestSubmit();
+        }
+    });
 
     function slugify(str, slug_str = '-', word_length = null) {
         str = str.replace(/^\s+|\s+$/g, ''); // trim leading/trailing white space
@@ -301,9 +351,9 @@
 <!--begin::Custom Javascript(used for this page only)-->
 @stack('scripts')
 
-{{-- <script src="{{ asset("theme/js/widgets.bundle.js") }}"></script> --}}
-{{-- <script src="{{ asset("theme/js/custom/widgets.js") }}"></script> --}}
-{{-- <script src="{{ asset("theme/js/custom/apps/chat/chat.js") }}"></script> --}}
+{{-- <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset("theme/js/widgets.bundle.js") }}"></script> --}}
+{{-- <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset("theme/js/custom/widgets.js") }}"></script> --}}
+{{-- <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset("theme/js/custom/apps/chat/chat.js") }}"></script> --}}
 <!--end::Custom Javascript-->
 <!--end::Javascript-->
 </body>

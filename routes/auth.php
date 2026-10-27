@@ -18,7 +18,7 @@ Route::middleware('guest')->group(function () {
     Route::get('fake-login', [AuthenticatedSessionController::class, 'fakeLogin'])->name('fake-login');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:5,15');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
@@ -27,7 +27,7 @@ Route::middleware('guest')->group(function () {
     Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active_user'])->group(function () {
     // Route::get('verify-email', EmailVerificationPromptController::class)
     //     ->name('verification.notice');
 

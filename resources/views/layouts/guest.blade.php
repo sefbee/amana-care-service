@@ -12,7 +12,7 @@
 
     <link rel="shortcut icon" href="{{ asset("img/favicon.ico?v=2") }}" />
     <meta name="theme-color" content="{{ config('starter.primary_color') }}">
-    <style>:root { --bs-primary: {{ config('starter.primary_color') }}; }</style>
+    <style nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">:root { --bs-primary: {{ config('starter.primary_color') }}; }</style>
     <!--begin::Fonts(mandatory for all pages)-->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
     <!--end::Fonts-->
@@ -20,7 +20,7 @@
     <link href="{{ asset("theme/plugins/global/plugins.bundle.css") }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset("theme/css/style.bundle.css") }}" rel="stylesheet" type="text/css" />
     <!--end::Global Stylesheets Bundle-->
-    <script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
         // Frame-busting to prevent site from being loaded within a frame without permission (click-jacking)
         if (window.top != window.self) { window.top.location.replace(window.self.location.href); }
     </script>
@@ -30,7 +30,7 @@
 
 <body id="kt_body" class="app-blank bgi-size-cover bgi-attachment-fixed bgi-position-center bgi-no-repeat">
     <!--begin::Theme mode setup on page load-->
-    <script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
         var defaultThemeMode = "light";
         var themeMode;
         if (document.documentElement) {
@@ -53,7 +53,7 @@
     <!--begin::Root-->
     <div class="d-flex flex-column flex-root" id="kt_app_root">
         <!--begin::Page bg image-->
-        <style>
+        <style nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
             body {
                 background-image: url('{{ asset("theme/media/auth/bg103.jpg") }}');
             }
@@ -108,15 +108,15 @@
     </div>
     <!--end::Root-->
     <!--begin::Javascript-->
-    <script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
         var hostUrl = "assets/";
     </script>
     <!--begin::Global Javascript Bundle(mandatory for all pages)-->
-    <script src="{{ asset("theme/plugins/global/plugins.bundle.js") }}"></script>
-    <script src="{{ asset("theme/js/scripts.bundle.js") }}"></script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset("theme/plugins/global/plugins.bundle.js") }}"></script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset("theme/js/scripts.bundle.js") }}"></script>
     <!--end::Global Javascript Bundle-->
     <!--begin::Custom Javascript(used for this page only)-->
-    <script src="{{ asset("theme/js/custom/authentication/sign-in/general.js") }}"></script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" src="{{ asset("theme/js/custom/authentication/sign-in/general.js") }}"></script>
     <!--end::Custom Javascript-->
     <!--end::Javascript-->
 </body>

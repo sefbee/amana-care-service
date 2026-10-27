@@ -45,7 +45,7 @@ graph TD
 
 ### Controllers
 
-**`App\Http\Controllers\LeadController`**
+**`App\Admin\Controllers\LeadController`**
 - `index()` — branches on `wantsJson()` for DataTable JSON; supports filters: status, channel, area, owner_id, date range
 - `create()` / `store()` — new lead form; runs duplicate check before persisting
 - `show()` — tabbed view: Details / Communication Log / Consent
@@ -54,29 +54,29 @@ graph TD
 - `updateStatus($id)` — toggle is_active via POST
 - `convert($id)` — delegates to `HouseholdService::convertFromLead()`
 
-**`App\Http\Controllers\HouseholdController`**
+**`App\Admin\Controllers\HouseholdController`**
 - `index()` — DataTable JSON branch; filters: status, area, assigned_coordinator_id, founding_cohort
 - `create()` / `store()` / `edit()` / `update()` / `destroy()`
 - `updateStatus($id)` — toggle is_active
 
-**`App\Http\Controllers\Household\HouseholdContactController`**
+**`App\Admin\Controllers\Household\HouseholdContactController`**
 - `store($householdId)` / `update($householdId, $id)` / `destroy($householdId, $id)`
-- `destroy()` enforces "last Primary contact" guard via `HouseholdService`
+- Contact responsibility flags allow one person to be both Primary Decision Maker and Billing Contact. `HouseholdService` serializes assignment changes under a Household row lock and rejects changes that remove the last active required contact.
 
-**`App\Http\Controllers\Household\CareRecipientController`**
+**`App\Admin\Controllers\Household\CareRecipientController`**
 - `store($householdId)` / `update($householdId, $id)` / `destroy($householdId, $id)`
 
-**`App\Http\Controllers\Lead\CommunicationLogController`**
+**`App\Admin\Controllers\Lead\CommunicationLogController`**
 - `store($leadId)` — rejects Outbound if `consent_status != Granted`
 - `destroy($leadId, $id)` — soft-delete
 
-**`App\Http\Controllers\Lead\ConsentController`**
+**`App\Admin\Controllers\Lead\ConsentController`**
 - `store($leadId)` — creates new ConsentRecord row (append-only)
 - `update($leadId, $id)` — records withdrawal timestamp; rolls up lead `consent_status`
 
 ### Services
 
-**`App\Services\LeadService`**
+**`App\Admin\Services\LeadService`**
 ```php
 public function normalizePhone(string $raw): string
 public function detectDuplicates(string $normalizedPhone, ?string $email, ?int $excludeId = null): Collection
@@ -85,7 +85,7 @@ public function getAllowedTransitions(): array
 public function recordStatusHistory(Lead $lead, string $from, string $to): void
 ```
 
-**`App\Services\HouseholdService`**
+**`App\Admin\Services\HouseholdService`**
 ```php
 public function convertFromLead(Lead $lead, array $extraData = []): Household
 public function guardLastPrimaryContact(Household $household, int $contactId): void
@@ -233,7 +233,7 @@ softDeletes, timestamps
 
 Each model uses `SoftDeletes`, `CommonAttributes`, `BuildsQueries`.
 
-**`App\Models\Lead`**
+**`App\Admin\Models\Lead`**
 ```php
 $fillable    = [full_name, phone, normalized_phone, email, channel, service_interest,
                 area, live_in_pref, preferred_start_date, budget_expectation, notes,
@@ -254,23 +254,23 @@ relationships:
   statusHistories()    HasMany LeadStatusHistory
 ```
 
-**`App\Models\LeadCommunicationLog`**
+**`App\Admin\Models\LeadCommunicationLog`**
 ```php
 relationships: lead() BelongsTo Lead, creator() BelongsTo User
 ```
 
-**`App\Models\LeadConsentRecord`**
+**`App\Admin\Models\LeadConsentRecord`**
 ```php
 relationships: lead() BelongsTo Lead, creator() BelongsTo User
 ```
 
-**`App\Models\LeadStatusHistory`**
+**`App\Admin\Models\LeadStatusHistory`**
 ```php
 // No SoftDeletes — audit only
 relationships: lead() BelongsTo Lead, changedBy() BelongsTo User
 ```
 
-**`App\Models\Household`**
+**`App\Admin\Models\Household`**
 ```php
 $fillable    = [display_name, area, address_line, access_notes, primary_language,
                 status, founding_cohort, assigned_coordinator_id, is_active, created_by]
@@ -282,12 +282,12 @@ relationships:
   leads()            HasMany Lead
 ```
 
-**`App\Models\HouseholdContact`**
+**`App\Admin\Models\HouseholdContact`**
 ```php
 relationships: household() BelongsTo Household
 ```
 
-**`App\Models\CareRecipient`**
+**`App\Admin\Models\CareRecipient`**
 ```php
 relationships: household() BelongsTo Household, creator() BelongsTo User
 ```
@@ -330,7 +330,7 @@ Stored in `LeadService::getAllowedTransitions()` as an associative array; not ha
 
 ### Property 3: Outbound communication requires consent
 
-*For any* Lead whose `consent_status` is not `Granted`, attempting to store an Outbound CommunicationLog entry SHALL be rejected with a validation error; for any Lead whose `consent_status` is `Granted`, the entry SHALL be accepted (subject to other field validations).
+*For any* Lead whose latest-per-channel aggregate consent is not `Granted`, an Outbound CommunicationLog entry SHALL be rejected; outbound Email/SMS SHALL additionally require that channel's latest record to be `Granted`, even if another channel remains granted.
 
 **Validates: Requirements 5.7, 6.6**
 
@@ -338,7 +338,7 @@ Stored in `LeadService::getAllowedTransitions()` as an associative array; not ha
 
 ### Property 4: Consent status roll-up invariant
 
-*For any* Lead and any sequence of ConsentRecord mutations: if at least one ConsentRecord for that Lead has `status = Granted`, the Lead's `consent_status` SHALL be `Granted`; if all ConsentRecords are `Withdrawn` or `Unknown` (or there are none), the Lead's `consent_status` SHALL reflect `Withdrawn` or `Unknown` accordingly.
+*For any* Lead and sequence of append-only ConsentRecord events: consider only the highest-ID event per channel. If any channel's current event is `Granted`, the Lead's `consent_status` SHALL be `Granted`; if there is history but no current grant it SHALL be `Withdrawn`; if no history exists it SHALL be `Unknown`.
 
 **Validates: Requirements 6.2, 6.3, 6.4, 6.5**
 
@@ -352,9 +352,9 @@ Stored in `LeadService::getAllowedTransitions()` as an associative array; not ha
 
 ---
 
-### Property 6: Household always has at least one Primary contact
+### Property 6: Household always has a Primary Decision Maker and Billing Contact
 
-*For any* Household, at any point in time after creation, there SHALL exist at least one non-deleted HouseholdContact with `role = Primary`; an attempt to delete the last remaining Primary contact SHALL be rejected.
+*For any* persisted Household, there SHALL be exactly one active Primary Decision Maker and one active Billing Contact. One contact may hold both responsibilities; deleting, deactivating, or reassigning either last responsibility SHALL be rejected.
 
 **Validates: Requirements 9.1, 9.6, 9.7**
 
@@ -453,9 +453,9 @@ Each test is tagged:
 
 **Property 2 test** — generate random `(from_status, to_status)` pairs from the Lead status enum; assert acceptance IFF pair is in allowed map.
 
-**Property 3 test** — generate Leads with random `consent_status` values; attempt Outbound log; assert accepted only when `consent_status = Granted`.
+**Property 3 test** — generate latest-per-channel consent histories; attempt Outbound logs; assert aggregate grants and exact Email/SMS grants are enforced.
 
-**Property 4 test** — generate random sequences of ConsentRecord mutations; assert Lead `consent_status` reflects roll-up rule after each mutation.
+**Property 4 test** — generate append-only channel consent events; assert the Lead roll-up follows the latest event for each channel.
 
 **Property 5 test** — generate random Qualified Leads with varying field values; trigger conversion; assert Household fields match Lead fields exactly, and Lead.household_id is set.
 
@@ -481,3 +481,8 @@ Each test is tagged:
 - Spatie ActivityLog entries written on Lead and Household mutations
 - ConsentRecord append-only behavior (no row overwritten)
 - Cascade soft-delete persisted to DB
+
+
+## Current code ownership
+
+CRM implementation classes use `App\Admin\Controllers`, `App\Admin\Models`, and `App\Admin\Services`; CRM Blade views are under `resources/views/admin/crm`; staff routes are registered from `routes/admin.php`. Shared auth/base controller/middleware remain under `App\Http`. See `docs/CODEBASE_STRUCTURE.md`.
